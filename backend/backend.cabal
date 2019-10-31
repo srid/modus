@@ -12,6 +12,9 @@ library
                , frontend
                , obelisk-backend
                , obelisk-route
+               , obelisk-executable-config-lookup
+               , text
+               , containers
   exposed-modules:
     Backend
   ghc-options: -Wall
@@ -26,3 +29,6 @@ executable backend
                , common
                , frontend
                , obelisk-backend
+               , obelisk-executable-config-lookup
+               , text
+               , containers
