@@ -9,8 +9,8 @@
 }:
 with obelisk;
 project ./. ({ ... }: {
-  android.applicationId = "systems.obsidian.obelisk.examples.minimal";
-  android.displayName = "Obelisk Minimal Example";
-  ios.bundleIdentifier = "systems.obsidian.obelisk.examples.minimal";
-  ios.bundleName = "Obelisk Minimal Example";
+  android.applicationId = "ca.srid.modus.dev";
+  android.displayName = "Modus";
+  ios.bundleIdentifier = "ca.srid.modus.dev";
+  ios.bundleName = "Modus";
 })
