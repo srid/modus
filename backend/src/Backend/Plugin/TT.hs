@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Backend.Plugin.TT where
+module Backend.Plugin.TT
+  ( loadFile
+  ) where
 
 import Data.Char (isPrint)
 import Data.Maybe (fromMaybe)
@@ -14,21 +16,13 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-
-type Category = [Text] -- TODO: should be non empty list
-
-data Item = Item
-  { _item_start :: TimeOfDay
-  , _item_end :: TimeOfDay
-  , _item_category :: Category
-  }
-  deriving (Eq, Show)
+import Common.Plugin.TT
 
 type Parser = Parsec Void Text
 
 -- TODO: Use typed paths?
-parseFile :: FilePath -> IO [Item]
-parseFile fp = do
+loadFile :: FilePath -> IO [Item]
+loadFile fp = do
   content <- T.pack <$> readFile fp
   case parse items fp content of
     Left e -> fail $ errorBundlePretty e

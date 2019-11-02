@@ -36,14 +36,11 @@ backend = Backend
           writeText "404"
         BackendRoute_GetData :=> Identity () -> do
           d <- liftIO $ getAllData dataDir
-          -- TODO: Move the types to common and return JSON encoded string
-          -- Think ahead of modularization
-          -- Backend/Plugin/TT.hs
-          -- Common/Plugin/TT.hs
+          -- TODO: Return JSON
           writeText $ T.pack $ Shower.shower d
   }
   where
     getAllData dataDir =
-      TT.parseFile $ T.unpack dataDir ++ "/diary/2019/10/31.tt"
+      TT.loadFile $ T.unpack dataDir ++ "/diary/2019/10/31.tt"
     getBackendTextConfig name =
       fmap (T.strip . T.decodeUtf8) . Map.lookup ("backend/" <> name) <$> getConfigs
