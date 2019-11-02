@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Backend.TTParser where
+module Backend.Plugin.TT where
 
 import Data.Char (isPrint)
 import Data.Maybe (fromMaybe)

@@ -22,7 +22,7 @@ library
                , snap
   exposed-modules:
     Backend
-    Backend.TTParser
+    Backend.Plugin.TT
   ghc-options: -Wall
 
 executable backend

@@ -21,7 +21,7 @@ import Snap
 
 import Common.Route
 
-import qualified Backend.TTParser as P
+import qualified Backend.Plugin.TT as TT
 
 backend :: Backend BackendRoute FrontendRoute
 backend = Backend
@@ -44,6 +44,6 @@ backend = Backend
   }
   where
     getAllData dataDir =
-      P.parseFile $ T.unpack dataDir ++ "/diary/2019/10/31.tt"
+      TT.parseFile $ T.unpack dataDir ++ "/diary/2019/10/31.tt"
     getBackendTextConfig name =
       fmap (T.strip . T.decodeUtf8) . Map.lookup ("backend/" <> name) <$> getConfigs
