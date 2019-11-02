@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -15,12 +15,16 @@ import Obelisk.ExecutableConfig.Lookup
 
 import Common.Route
 
+import qualified Backend.TTParser as P
+
 backend :: Backend BackendRoute FrontendRoute
 backend = Backend
   { _backend_routeEncoder = fullRouteEncoder
   , _backend_run = \serve -> do
-      dataDir <- getBackendTextConfig "data-directory"
+      Just dataDir <- getBackendTextConfig "data-directory"
       liftIO $ print dataDir
+      items <- liftIO $ P.parseFile $ T.unpack dataDir ++ "/diary/2019/10/31.tt"
+      liftIO $ print items
       serve $ const $ return ()
   }
   where

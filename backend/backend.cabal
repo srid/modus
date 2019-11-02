@@ -15,8 +15,11 @@ library
                , obelisk-executable-config-lookup
                , text
                , containers
+               , megaparsec
+               , time
   exposed-modules:
     Backend
+    Backend.TTParser
   ghc-options: -Wall
 
 executable backend
