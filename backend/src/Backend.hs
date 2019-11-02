@@ -10,6 +10,8 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
+import qualified Shower
+
 import Obelisk.Backend
 import Obelisk.ExecutableConfig.Lookup
 
@@ -24,7 +26,7 @@ backend = Backend
       Just dataDir <- getBackendTextConfig "data-directory"
       liftIO $ print dataDir
       items <- liftIO $ P.parseFile $ T.unpack dataDir ++ "/diary/2019/10/31.tt"
-      liftIO $ print items
+      liftIO $ Shower.printer items
       serve $ const $ return ()
   }
   where

@@ -8,9 +8,14 @@
   }
 }:
 with obelisk;
-project ./. ({ ... }: {
+project ./. ({ hackGet, ... }: {
   android.applicationId = "ca.srid.modus.dev";
   android.displayName = "Modus";
   ios.bundleIdentifier = "ca.srid.modus.dev";
   ios.bundleName = "Modus";
+
+  packages = {
+    shower = hackGet ./dep/shower;  # Marked as broken in nixpkgs (19.09)
+  };
+
 })

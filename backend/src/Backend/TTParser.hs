@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Backend.TTParser where
 
-import Control.Monad
 import Data.Char (isPrint)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -55,9 +55,9 @@ item = do
 
 -- | Like `printChar` but ignores the given character
 printCharExcept :: (MonadParsec e s m, Token s ~ Char) => Char -> m (Token s)
-printCharExcept ignoreChar = satisfy pred <?> "printable character except /"
+printCharExcept ignoreChar = satisfy predicate <?> "printable character except /"
   where
-    pred c = c /= ignoreChar && isPrint c
+    predicate c = c /= ignoreChar && isPrint c
 
 items :: Parser [Item]
 items = manyLines item

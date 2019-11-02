@@ -17,6 +17,7 @@ library
                , containers
                , megaparsec
                , time
+               , shower
   exposed-modules:
     Backend
     Backend.TTParser
