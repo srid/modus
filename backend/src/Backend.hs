@@ -7,6 +7,7 @@
 module Backend where
 
 import Control.Monad.IO.Class
+import qualified Data.Aeson as Aeson
 import Data.Dependent.Sum (DSum ((:=>)))
 import Data.Functor.Identity (Identity (..))
 import qualified Data.Map as Map
@@ -33,11 +34,10 @@ backend = Backend
       liftIO $ Shower.printer items
       serve $ \case
         BackendRoute_Missing :=> Identity () ->
-          writeText "404"
+          writeLBS "404"
         BackendRoute_GetData :=> Identity () -> do
           d <- liftIO $ getAllData dataDir
-          -- TODO: Return JSON
-          writeText $ T.pack $ Shower.shower d
+          writeLBS $ Aeson.encode d
   }
   where
     getAllData dataDir =

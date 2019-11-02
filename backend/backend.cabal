@@ -20,6 +20,7 @@ library
                , shower
                , dependent-sum
                , snap
+               , aeson
   exposed-modules:
     Backend
     Backend.Plugin.TT
