@@ -18,6 +18,8 @@ library
                , megaparsec
                , time
                , shower
+               , dependent-sum
+               , snap
   exposed-modules:
     Backend
     Backend.TTParser
@@ -33,6 +35,3 @@ executable backend
                , common
                , frontend
                , obelisk-backend
-               , obelisk-executable-config-lookup
-               , text
-               , containers
