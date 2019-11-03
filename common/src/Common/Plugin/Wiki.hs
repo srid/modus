@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Common.Plugin.MD where
+module Common.Plugin.Wiki where
 
 import Data.Aeson
 import Data.Text (Text)

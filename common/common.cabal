@@ -19,4 +19,4 @@ library
     Common.Api
     Common.Route
     Common.Plugin.TT
-    Common.Plugin.MD
+    Common.Plugin.Wiki

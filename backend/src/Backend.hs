@@ -10,20 +10,19 @@ module Backend where
 import Control.Monad.IO.Class
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as BSC
-import Data.Dependent.Sum (DSum ((:=>)))
-import Data.Functor.Identity (Identity (..))
 import qualified Data.Map as Map
 import Path
 
 import Obelisk.Backend
 import Obelisk.ExecutableConfig.Lookup
+import Obelisk.Route
 
 import Snap
 
 import Common.Route
 
 import qualified Backend.Plugin.TT as TT
-import qualified Backend.Plugin.MD as MD
+import qualified Backend.Plugin.Wiki as Wiki
 
 backend :: Backend BackendRoute FrontendRoute
 backend = Backend
@@ -34,15 +33,15 @@ backend = Backend
       -- items <- liftIO $ getAllData dataDir
       -- liftIO $ Shower.printer items
       serve $ \case
-        BackendRoute_Missing :=> Identity () ->
+        BackendRoute_Missing :/ () ->
           writeLBS "404"
-        BackendRoute_GetData :=> Identity () -> do
+        BackendRoute_GetData :/ () -> do
           d <- liftIO $ getAllData dataDir
           writeLBS $ Aeson.encode d
   }
   where
     getAllData dataDir = (,)
       <$> TT.loadData dataDir
-      <*> MD.loadData dataDir
+      <*> Wiki.loadData dataDir
     getBackendConfig name =
       fmap BSC.unpack . Map.lookup ("backend/" <> name) <$> getConfigs

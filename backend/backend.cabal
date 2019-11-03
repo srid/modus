@@ -27,7 +27,7 @@ library
   exposed-modules:
     Backend
     Backend.Plugin.TT
-    Backend.Plugin.MD
+    Backend.Plugin.Wiki
   ghc-options: -Wall
 
 executable backend

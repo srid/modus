@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Backend.Plugin.MD where
+module Backend.Plugin.Wiki where
 
 import Control.Monad
 import Data.Text (Text)
@@ -10,7 +10,7 @@ import Path
 import Path.IO
 
 
-import Common.Plugin.MD
+import Common.Plugin.Wiki
 
 pluginExt :: Text
 pluginExt = ".md"
