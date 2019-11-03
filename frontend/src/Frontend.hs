@@ -17,6 +17,7 @@ import Obelisk.Route
 import Reflex.Dom.Core
 
 import qualified Common.Plugin.TT as TT
+import qualified Common.Plugin.MD as MD
 import Common.Route
 
 frontend :: Frontend (R FrontendRoute)
@@ -30,7 +31,7 @@ frontend = Frontend
       elClass "h1" "ui header" $ text "Modus dev"
       divClass "ui segment" $ do
         d <- getData
-        widgetHold_ (text "Loading...") $ ffor d $ \case
+        widgetHold_ (text "Loading...") $ ffor (fmap fst <$> d) $ \case
           Nothing -> text "Error decoding data"
           Just days -> do
             divClass "ui striped table" $ do
@@ -56,7 +57,7 @@ frontend = Frontend
 
 getData
   :: (MonadHold t m, PostBuild t m, Prerender js t m)
-  => m (Event t (Maybe TT.Data))
+  => m (Event t (Maybe (TT.Data, MD.Data)))
 getData = fmap switchDyn $ prerender (pure never) $ do
   pb <- getPostBuild
   getAndDecode $ renderBackendRoute enc (BackendRoute_GetData :/ ()) <$ pb

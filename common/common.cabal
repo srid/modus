@@ -11,6 +11,7 @@ library
                , text
                , time
                , aeson
+               , path
   default-extensions:
     TypeFamilies
     PolyKinds
@@ -18,3 +19,4 @@ library
     Common.Api
     Common.Route
     Common.Plugin.TT
+    Common.Plugin.MD

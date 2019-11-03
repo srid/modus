@@ -18,12 +18,12 @@ import Path
 import Obelisk.Backend
 import Obelisk.ExecutableConfig.Lookup
 
-import qualified Shower
 import Snap
 
 import Common.Route
 
 import qualified Backend.Plugin.TT as TT
+import qualified Backend.Plugin.MD as MD
 
 backend :: Backend BackendRoute FrontendRoute
 backend = Backend
@@ -31,8 +31,8 @@ backend = Backend
   , _backend_run = \serve -> do
       Just (Just dataDir) <- fmap parseAbsDir <$> getBackendConfig "data-directory"
       liftIO $ print dataDir
-      items <- liftIO $ getAllData dataDir
-      liftIO $ Shower.printer items
+      -- items <- liftIO $ getAllData dataDir
+      -- liftIO $ Shower.printer items
       serve $ \case
         BackendRoute_Missing :=> Identity () ->
           writeLBS "404"
@@ -41,7 +41,8 @@ backend = Backend
           writeLBS $ Aeson.encode d
   }
   where
-    getAllData dataDir =
-      TT.loadData dataDir
+    getAllData dataDir = (,)
+      <$> TT.loadData dataDir
+      <*> MD.loadData dataDir
     getBackendConfig name =
       fmap BSC.unpack . Map.lookup ("backend/" <> name) <$> getConfigs
