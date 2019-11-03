@@ -42,6 +42,6 @@ backend = Backend
   }
   where
     getAllData dataDir =
-      TT.loadFile $ dataDir </> [relfile|diary/2019/10/31.tt|]
+      TT.loadData dataDir
     getBackendConfig name =
       fmap BSC.unpack . Map.lookup ("backend/" <> name) <$> getConfigs

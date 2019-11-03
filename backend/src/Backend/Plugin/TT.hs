@@ -1,11 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Backend.Plugin.TT
-  ( loadFile
+  ( loadData
   ) where
 
+import Control.Monad
 import Data.Char (isPrint)
+import Data.List (sort)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -13,6 +18,7 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Void (Void)
 import Path
+import Path.IO
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -22,7 +28,24 @@ import Common.Plugin.TT
 
 type Parser = Parsec Void Text
 
--- TODO: Use typed paths?
+-- | Load all .tt files under diary/ directory.
+loadData :: Path Abs Dir -> IO Data
+loadData dataDir = sort <$> do
+  let diaryDir = dataDir </> [reldir|diary|]
+  (_, files) <- listDirRecurRel diaryDir
+  let ttFiles = filter ((== ".tt") . fileExtension) files
+  forM ttFiles $ \f -> do
+    xs <- loadFile (diaryDir </> f)
+    let Just day = parseMaybe dayPathParser $ T.pack (toFilePath f)
+    pure (day, xs)
+  where
+    dayPathParser :: Parser Day
+    dayPathParser = fromGregorian
+      <$> (L.decimal <* string "/")
+      <*> (L.decimal <* string "/")
+      <*> (L.decimal <* (string ".tt" <* eof))
+
+-- | Load a .tt file
 loadFile :: Path Abs File -> IO [Item]
 loadFile fp = do
   content <- T.pack <$> readFile (toFilePath fp)
@@ -32,12 +55,12 @@ loadFile fp = do
 
 timeOfDay :: Parser TimeOfDay
 timeOfDay = do
-  hh <- some numberChar
+  hh <- L.decimal
   _ <- string "h"
-  mm <- optional . try $ some numberChar
-  case makeTimeOfDayValid (read hh) (maybe 0 read mm) 0 of
+  mm <- optional . try $ L.decimal
+  case makeTimeOfDayValid hh (fromMaybe 0 mm) 0 of
     Just v -> pure v
-    Nothing -> fail $ "invalid time of day: " ++ hh ++ "h" ++ fromMaybe "" mm
+    Nothing -> fail $ "invalid time of day: " ++ show hh ++ "h" ++ maybe "" show  mm
 
 timeRange :: Parser (TimeOfDay, TimeOfDay)
 timeRange = (,) <$> (timeOfDay <* string "-") <*> timeOfDay

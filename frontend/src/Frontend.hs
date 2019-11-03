@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeApplications #-}
 module Frontend where
 
+import Control.Monad
 import Data.Functor.Identity
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -31,7 +32,21 @@ frontend = Frontend
         d <- getData
         widgetHold_ (text "Loading...") $ ffor d $ \case
           Nothing -> text "Error decoding data"
-          Just items -> text $ T.pack $ show items
+          Just days -> do
+            divClass "ui striped table" $ do
+              el "thead" $ el "tr" $ do
+                el "th" $ text "Day"
+                el "th" $ text "Start"
+                el "th" $ text "End"
+                el "th" $ text "Category"
+              el "tbody" $ forM_ days $ \(day, items) -> do
+                forM_ items $ \(TT.Item start end category) -> do
+                  el "tr" $ do
+                    el "td" $ text $ T.pack $ show day
+                    el "td" $ text $ T.pack $ show start
+                    el "td" $ text $ T.pack $ show end
+                    forM_ category $ \cat ->
+                      divClass "ui basic right pointing label" $ text cat
       divClass "ui segment" $ do
         exampleConfig <- getConfig "common/example"
         case exampleConfig of
@@ -41,7 +56,7 @@ frontend = Frontend
 
 getData
   :: (MonadHold t m, PostBuild t m, Prerender js t m)
-  => m (Event t (Maybe [TT.Item]))
+  => m (Event t (Maybe TT.Data))
 getData = fmap switchDyn $ prerender (pure never) $ do
   pb <- getPostBuild
   getAndDecode $ renderBackendRoute enc (BackendRoute_GetData :/ ()) <$ pb
