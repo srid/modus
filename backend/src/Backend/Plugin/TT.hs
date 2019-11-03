@@ -9,8 +9,10 @@ import Data.Char (isPrint)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Void (Void)
+import Path
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -21,10 +23,10 @@ import Common.Plugin.TT
 type Parser = Parsec Void Text
 
 -- TODO: Use typed paths?
-loadFile :: FilePath -> IO [Item]
+loadFile :: Path Abs File -> IO [Item]
 loadFile fp = do
-  content <- T.pack <$> readFile fp
-  case parse items fp content of
+  content <- T.pack <$> readFile (toFilePath fp)
+  case parse items (toFilePath fp) content of
     Left e -> fail $ errorBundlePretty e
     Right v -> pure v
 
