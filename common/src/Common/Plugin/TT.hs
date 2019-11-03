@@ -4,12 +4,13 @@
 module Common.Plugin.TT where
 
 import Data.Aeson
+import Data.List.NonEmpty
 import Data.Text (Text)
-import Data.Time.LocalTime
 import Data.Time.Calendar
+import Data.Time.LocalTime
 import GHC.Generics
 
-type Category = [Text] -- TODO: should be non empty list
+type Category = NonEmpty Text
 
 data Item = Item
   { _item_start :: TimeOfDay

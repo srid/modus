@@ -11,6 +11,7 @@ module Backend.Plugin.TT
 import Control.Monad
 import Data.Char (isPrint)
 import Data.List (sort)
+import qualified Data.List.NonEmpty as NEL
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -28,12 +29,15 @@ import Common.Plugin.TT
 
 type Parser = Parsec Void Text
 
+pluginExt :: Text
+pluginExt = ".tt"
+
 -- | Load all .tt files under diary/ directory.
 loadData :: Path Abs Dir -> IO Data
 loadData dataDir = sort <$> do
   let diaryDir = dataDir </> [reldir|diary|]
   (_, files) <- listDirRecurRel diaryDir
-  let ttFiles = filter ((== ".tt") . fileExtension) files
+  let ttFiles = filter ((== T.unpack pluginExt) . fileExtension) files
   forM ttFiles $ \f -> do
     xs <- loadFile (diaryDir </> f)
     let Just day = parseMaybe dayPathParser $ T.pack (toFilePath f)
@@ -43,7 +47,7 @@ loadData dataDir = sort <$> do
     dayPathParser = fromGregorian
       <$> (L.decimal <* string "/")
       <*> (L.decimal <* string "/")
-      <*> (L.decimal <* (string ".tt" <* eof))
+      <*> (L.decimal <* (string pluginExt <* eof))
 
 -- | Load a .tt file
 loadFile :: Path Abs File -> IO [Item]
@@ -70,7 +74,7 @@ item = do
   (start, end) <- timeRange
   _ <- space1
   cat <- fmap T.pack <$> sepBy1 (some $ printCharExcept '/') (char '/')
-  pure $ Item start end cat
+  pure $ Item start end $ NEL.fromList cat
 
 -- | Like `printChar` but ignores the given character
 printCharExcept :: (MonadParsec e s m, Token s ~ Char) => Char -> m (Token s)
