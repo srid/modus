@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -9,7 +10,9 @@ module Backend where
 import Control.Monad.IO.Class
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
+import qualified Data.Text as T
 import Path
 
 import Obelisk.Backend
@@ -32,12 +35,21 @@ backend = Backend
       serve $ \case
         BackendRoute_Missing :/ () ->
           writeLBS "404"
-        BackendRoute_Api :/ r -> case r of
-          ApiRoute_TT :/ IndexOnlyRoute :/ () ->
-            writeLBS . Aeson.encode =<< liftIO (TT.loadData dataDir)
-          ApiRoute_Wiki :/ _ ->
-            writeLBS . Aeson.encode =<< liftIO (Wiki.loadData dataDir)
+        BackendRoute_Api :/ r ->
+          writeLBS =<< liftIO (loadPluginData dataDir r)
   }
   where
     getBackendConfig name =
       fmap BSC.unpack . Map.lookup ("backend/" <> name) <$> getConfigs
+
+    loadPluginData :: Path Abs Dir -> R ApiRoute -> IO BSL.ByteString
+    loadPluginData dataDir = \case
+      ApiRoute_TT :/ IndexOnlyRoute :/ () -> Aeson.encode <$>
+        TT.loadData dataDir
+      ApiRoute_Wiki :/ wr -> case wr of
+        WikiRoute_Index :/ () -> Aeson.encode <$>
+          Wiki.loadData dataDir
+        WikiRoute_Show :/ noteName' -> Aeson.encode <$> do
+          let Just noteName = parseRelFile $ T.unpack noteName'
+              noteFile = dataDir </> [reldir|wiki|] </> noteName
+          Wiki.loadFile noteFile

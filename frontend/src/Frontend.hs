@@ -9,6 +9,7 @@ module Frontend where
 import Control.Monad
 import Data.Aeson (FromJSON)
 import Data.Functor.Identity
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Path
@@ -55,14 +56,17 @@ frontend = Frontend
                       divClass "ui basic right pointing label" $ text cat
         FrontendRoute_Wiki -> subRoute_ $ \case
           WikiRoute_Index ->
-            renderPlugin @[Wiki.Note] (ApiRoute_Wiki :/ WikiRoute_Index :/ ()) $ \notes ->
-              forM_ (Wiki._note_fileName <$> notes) $ \t -> do
-                let noteName = T.pack $ toFilePath t
+            renderPlugin @Wiki.Data (ApiRoute_Wiki :/ WikiRoute_Index :/ ()) $ \notes ->
+              forM_ notes $ \f -> do
+                let noteName = T.pack $ toFilePath f
                 el "li" $ routeLink (FrontendRoute_Wiki :/ WikiRoute_Show :/ noteName) $
                   text noteName
           WikiRoute_Show -> do
-            pageName <- askRoute
-            dynText pageName
+            noteName' <- askRoute
+            -- TODO: avoid the dyn_
+            dyn_ $ ffor noteName' $ \noteName ->
+              renderPlugin @Text (ApiRoute_Wiki :/ WikiRoute_Show :/ noteName) $ \content ->
+                el "pre" $ text content
 
       divClass "ui segment" $ do
         exampleConfig <- getConfig "common/example"
