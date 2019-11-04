@@ -13,7 +13,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Path
-import Data.Time.Calendar
 
 import Obelisk.Configs
 import Obelisk.Frontend
@@ -39,7 +38,7 @@ frontend = Frontend
       divClass "ui segment" $ subRoute_ $ \case
         FrontendRoute_Main -> text "Main"
         FrontendRoute_TT ->
-          renderPlugin @[(Day, [TT.Item])] (ApiRoute_TT :/ IndexOnlyRoute :/ ()) $ \days ->
+          renderPlugin @TT.Data (ApiRoute_TT :/ IndexOnlyRoute :/ ()) $ \days ->
             divClass "ui striped table" $ do
               el "thead" $ el "tr" $ do
                 el "th" $ text "Day"
@@ -65,8 +64,10 @@ frontend = Frontend
             noteName' <- askRoute
             -- TODO: avoid the dyn_
             dyn_ $ ffor noteName' $ \noteName ->
-              renderPlugin @Text (ApiRoute_Wiki :/ WikiRoute_Show :/ noteName) $ \content ->
-                el "pre" $ text content
+              renderPlugin @Text (ApiRoute_Wiki :/ WikiRoute_Show :/ noteName) $
+                \content ->
+                  -- TODO: render markdown on server
+                  el "pre" $ text content
 
       divClass "ui segment" $ do
         exampleConfig <- getConfig "common/example"
