@@ -3,21 +3,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 module Frontend where
 
 import Control.Monad
+import Data.Aeson (FromJSON)
 import Data.Functor.Identity
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Path
+import Data.Time.Calendar
 
 import Obelisk.Configs
 import Obelisk.Frontend
 import Obelisk.Generated.Static
 import Obelisk.Route
+import Obelisk.Route.Frontend
 import Reflex.Dom.Core
 
 import qualified Common.Plugin.TT as TT
-import qualified Common.Plugin.MD as MD
+import qualified Common.Plugin.Wiki as Wiki
 import Common.Route
 
 frontend :: Frontend (R FrontendRoute)
@@ -29,25 +34,36 @@ frontend = Frontend
       elAttr "link" ("rel" =: "stylesheet" <> "type" =: "text/css" <> "href" =: static @"semantic.min.css") blank
   , _frontend_body = divClass "ui container" $ do
       elClass "h1" "ui header" $ text "Modus dev"
-      divClass "ui segment" $ do
-        d <- getData
-        widgetHold_ (text "Loading...") $ ffor (fmap fst <$> d) $ \case
-          Nothing -> text "Error decoding data"
-          Just days -> do
+      -- TODO: tab bar
+      divClass "ui segment" $ subRoute_ $ \case
+        FrontendRoute_Main -> text "Main"
+        FrontendRoute_TT ->
+          renderPlugin @[(Day, [TT.Item])] (ApiRoute_TT :/ IndexOnlyRoute :/ ()) $ \days ->
             divClass "ui striped table" $ do
               el "thead" $ el "tr" $ do
                 el "th" $ text "Day"
                 el "th" $ text "Start"
                 el "th" $ text "End"
                 el "th" $ text "Category"
-              el "tbody" $ forM_ days $ \(day, items) -> do
-                forM_ items $ \(TT.Item start end category) -> do
+              el "tbody" $ forM_ days $ \(day, items) ->
+                forM_ items $ \(TT.Item start end category) ->
                   el "tr" $ do
                     el "td" $ text $ T.pack $ show day
                     el "td" $ text $ T.pack $ show start
                     el "td" $ text $ T.pack $ show end
                     forM_ category $ \cat ->
                       divClass "ui basic right pointing label" $ text cat
+        FrontendRoute_Wiki -> subRoute_ $ \case
+          WikiRoute_Index ->
+            renderPlugin @[Wiki.Note] (ApiRoute_Wiki :/ WikiRoute_Index :/ ()) $ \notes ->
+              forM_ (Wiki._note_fileName <$> notes) $ \t -> do
+                let noteName = T.pack $ toFilePath t
+                el "li" $ routeLink (FrontendRoute_Wiki :/ WikiRoute_Show :/ noteName) $
+                  text noteName
+          WikiRoute_Show -> do
+            pageName <- askRoute
+            dynText pageName
+
       divClass "ui segment" $ do
         exampleConfig <- getConfig "common/example"
         case exampleConfig of
@@ -55,11 +71,28 @@ frontend = Frontend
           Just s -> text $ T.decodeUtf8 s
   }
 
-getData
-  :: (MonadHold t m, PostBuild t m, Prerender js t m)
-  => m (Event t (Maybe (TT.Data, MD.Data)))
-getData = fmap switchDyn $ prerender (pure never) $ do
+renderPlugin
+  :: forall a t m js.
+     (DomBuilder t m, MonadHold t m, PostBuild t m, Prerender js t m, FromJSON a)
+  => R ApiRoute
+  -> (a -> m ())
+  -> m ()
+renderPlugin r f = do
+  resp <- getApi $ BackendRoute_Api :/ r
+  widgetHold_ (text "Loading...") $ ffor resp $
+    maybe (text "Error decoding plugin data") f
+
+-- | Fetch data from the backend API
+getApi
+  :: forall a t m js.
+     (MonadHold t m, PostBuild t m, Prerender js t m, FromJSON a)
+  => R BackendRoute
+  -- ^ The Api route to fetch
+  -> m (Event t (Maybe a))
+  -- ^ The `a` here should specify the type of the JSON decoded data that the
+  -- given Api route returns.
+getApi br = fmap switchDyn $ prerender (pure never) $ do
   pb <- getPostBuild
-  getAndDecode $ renderBackendRoute enc (BackendRoute_GetData :/ ()) <$ pb
+  getAndDecode $ renderBackendRoute enc br <$ pb
   where
     Right (enc :: Encoder Identity Identity (R (FullRoute BackendRoute FrontendRoute)) PageName) = checkEncoder fullRouteEncoder

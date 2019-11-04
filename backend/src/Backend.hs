@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -30,18 +29,15 @@ backend = Backend
   , _backend_run = \serve -> do
       Just (Just dataDir) <- fmap parseAbsDir <$> getBackendConfig "data-directory"
       liftIO $ print dataDir
-      -- items <- liftIO $ getAllData dataDir
-      -- liftIO $ Shower.printer items
       serve $ \case
         BackendRoute_Missing :/ () ->
           writeLBS "404"
-        BackendRoute_GetData :/ () -> do
-          d <- liftIO $ getAllData dataDir
-          writeLBS $ Aeson.encode d
+        BackendRoute_Api :/ r -> case r of
+          ApiRoute_TT :/ IndexOnlyRoute :/ () ->
+            writeLBS . Aeson.encode =<< liftIO (TT.loadData dataDir)
+          ApiRoute_Wiki :/ _ ->
+            writeLBS . Aeson.encode =<< liftIO (Wiki.loadData dataDir)
   }
   where
-    getAllData dataDir = (,)
-      <$> TT.loadData dataDir
-      <*> Wiki.loadData dataDir
     getBackendConfig name =
       fmap BSC.unpack . Map.lookup ("backend/" <> name) <$> getConfigs

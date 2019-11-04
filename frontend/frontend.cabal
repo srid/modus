@@ -13,6 +13,9 @@ library
                , obelisk-executable-config-lookup
                , obelisk-generated-static
                , text
+               , path
+               , aeson
+               , time
   exposed-modules:
     Frontend
   ghc-options: -Wall
