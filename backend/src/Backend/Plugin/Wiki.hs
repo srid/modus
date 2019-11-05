@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Backend.Plugin.Wiki where
+module Backend.Plugin.Wiki
+  ( loadData
+  , loadFile
+  ) where
 
 import Data.Text (Text)
 import qualified Data.Text as T

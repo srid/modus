@@ -8,6 +8,7 @@ module Frontend where
 
 import Control.Monad
 import Data.Aeson (FromJSON)
+import Data.Either.Combinators (fromRight')
 import Data.Functor.Identity
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -100,4 +101,5 @@ getApi br = fmap switchDyn $ prerender (pure never) $ do
   pb <- getPostBuild
   getAndDecode $ renderBackendRoute enc br <$ pb
   where
-    Right (enc :: Encoder Identity Identity (R (FullRoute BackendRoute FrontendRoute)) PageName) = checkEncoder fullRouteEncoder
+    enc :: Encoder Identity Identity (R (FullRoute BackendRoute FrontendRoute)) PageName
+    enc = fromRight' $ checkEncoder fullRouteEncoder

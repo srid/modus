@@ -12,6 +12,7 @@ import qualified Data.Aeson as Aeson
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
+import Data.Maybe (fromJust)
 import qualified Data.Text as T
 import Path
 
@@ -50,6 +51,6 @@ backend = Backend
         WikiRoute_Index :/ () -> Aeson.encode <$>
           Wiki.loadData dataDir
         WikiRoute_Show :/ noteName' -> Aeson.encode <$> do
-          let Just noteName = parseRelFile $ T.unpack noteName'
+          let noteName = fromJust $ parseRelFile $ T.unpack noteName'
               noteFile = dataDir </> [reldir|wiki|] </> noteName
           Wiki.loadFile noteFile

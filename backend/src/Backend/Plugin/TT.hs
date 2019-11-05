@@ -12,7 +12,7 @@ import Control.Monad
 import Data.Char (isPrint)
 import Data.List (sort)
 import qualified Data.List.NonEmpty as NEL
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromJust, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -40,7 +40,7 @@ loadData dataDir = sort <$> do
   let ttFiles = filter ((== T.unpack pluginExt) . fileExtension) files
   forM ttFiles $ \f -> do
     xs <- loadFile (diaryDir </> f)
-    let Just day = parseMaybe dayPathParser $ T.pack (toFilePath f)
+    let day = fromJust $ parseMaybe dayPathParser $ T.pack (toFilePath f)
     pure (day, xs)
   where
     dayPathParser :: Parser Day

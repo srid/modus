@@ -29,6 +29,13 @@ library
     Backend.Plugin.TT
     Backend.Plugin.Wiki
   ghc-options: -Wall
+               -Wcompat
+               -Widentities
+               -Wincomplete-uni-patterns
+               -Wpartial-fields
+               -Wredundant-constraints
+               -Wmissing-deriving-strategies
+               -fhide-source-paths
 
 executable backend
   main-is: main.hs

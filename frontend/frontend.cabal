@@ -16,6 +16,7 @@ library
                , path
                , aeson
                , time
+               , either
   exposed-modules:
     Frontend
   ghc-options: -Wall
