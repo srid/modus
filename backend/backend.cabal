@@ -24,6 +24,7 @@ library
                , path
                , path-io >= 1.3.0
                , bytestring
+               , rib >= 0.4.0.0
   exposed-modules:
     Backend
     Backend.Plugin.TT

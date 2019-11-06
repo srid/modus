@@ -65,10 +65,13 @@ frontend = Frontend
             noteName' <- askRoute
             -- TODO: avoid the dyn_
             dyn_ $ ffor noteName' $ \noteName ->
-              renderPlugin @Text (ApiRoute_Wiki :/ WikiRoute_Show :/ noteName) $
-                \content ->
-                  -- TODO: render markdown on server
-                  el "pre" $ text content
+              renderPlugin @(Either String Text) (ApiRoute_Wiki :/ WikiRoute_Show :/ noteName) $
+                \case
+                  Left err -> divClass "ui negative message" $ do
+                    divClass "header" $ text "Unable to render source document"
+                    el "p" $ text $ T.pack err
+                  Right content -> prerender_ blank $
+                    void $ elDynHtml' "div" $ constDyn content
 
       divClass "ui segment" $ do
         exampleConfig <- getConfig "common/example"

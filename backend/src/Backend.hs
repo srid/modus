@@ -5,14 +5,18 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
-module Backend where
+module Backend
+  ( backend
+  ) where
 
 import Control.Monad.IO.Class
 import qualified Data.Aeson as Aeson
+import Data.Bifunctor (bimap)
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
 import Data.Maybe (fromJust)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Path
 
@@ -20,6 +24,7 @@ import Obelisk.Backend
 import Obelisk.ExecutableConfig.Lookup
 import Obelisk.Route
 
+import qualified Rib.Pandoc as Pandoc
 import Snap
 
 import Common.Route
@@ -53,4 +58,10 @@ backend = Backend
         WikiRoute_Show :/ noteName' -> Aeson.encode <$> do
           let noteName = fromJust $ parseRelFile $ T.unpack noteName'
               noteFile = dataDir </> [reldir|wiki|] </> noteName
-          Wiki.loadFile noteFile
+          markdownToHtml <$> Wiki.loadFile noteFile
+
+    -- Convert markdown text to HTML text.
+    markdownToHtml :: Text -> Either String Text
+    markdownToHtml = bimap show id
+                     . Pandoc.render'
+                     . Pandoc.parsePure Pandoc.readMarkdown
