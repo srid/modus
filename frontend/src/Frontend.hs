@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -7,6 +8,7 @@
 module Frontend where
 
 import Control.Monad
+import Control.Monad.Fix
 import Data.Aeson (FromJSON)
 import Data.Either.Combinators (fromRight')
 import Data.Functor.Identity
@@ -26,6 +28,41 @@ import qualified Common.Plugin.TT as TT
 import qualified Common.Plugin.Wiki as Wiki
 import Common.Route
 
+data Tab
+  = Tab_Home
+  | Tab_Wiki
+  | Tab_TT
+  deriving (Eq, Ord, Bounded, Enum)
+
+instance Show Tab where
+  show = \case
+    Tab_Home -> "Home"
+    Tab_Wiki -> "Wiki"
+    Tab_TT -> "TT"
+
+tabRoute :: Tab -> R FrontendRoute
+tabRoute = \case
+  Tab_Home -> FrontendRoute_Main :/ ()
+  Tab_Wiki -> FrontendRoute_Wiki :/ WikiRoute_Index :/ ()
+  Tab_TT -> FrontendRoute_TT :/ IndexOnlyRoute :/ ()
+
+withTabs
+  :: (DomBuilder t m, MonadHold t m, MonadFix m, PostBuild t m, RouteToUrl (R FrontendRoute) m, SetRoute t (R FrontendRoute) m)
+  => RoutedT t (R FrontendRoute) m ()
+  -> RoutedT t (R FrontendRoute) m ()
+withTabs w = do
+  divClass "ui top attached tabular menu" $ do
+    activeTab :: Dynamic t Tab <- subRoute $ \case
+      FrontendRoute_Main -> pure Tab_Home
+      FrontendRoute_Wiki -> pure Tab_Wiki
+      FrontendRoute_TT -> pure Tab_TT
+    forM_ [minBound .. maxBound] $ \(tab :: Tab) -> do
+      let attr = ffor ((== tab) <$> activeTab) $ \case
+            False -> ("class" =: "item")
+            True -> ("class" =: "active item")
+      elDynAttr "div" attr $ routeLink (tabRoute tab) $ text $ T.pack (show tab)
+  divClass "ui bottom attached active tab segment" w
+
 frontend :: Frontend (R FrontendRoute)
 frontend = Frontend
   { _frontend_head = do
@@ -35,9 +72,8 @@ frontend = Frontend
       elAttr "link" ("rel" =: "stylesheet" <> "type" =: "text/css" <> "href" =: static @"semantic.min.css") blank
   , _frontend_body = divClass "ui container" $ do
       elClass "h1" "ui header" $ text "Modus dev"
-      -- TODO: tab bar
-      divClass "ui segment" $ subRoute_ $ \case
-        FrontendRoute_Main -> text "Main"
+      withTabs $ subRoute_ $ \case
+        FrontendRoute_Main -> text "Hello"
         FrontendRoute_TT ->
           renderPlugin @TT.Data (ApiRoute_TT :/ IndexOnlyRoute :/ ()) $ \days ->
             divClass "ui striped table" $ do
@@ -52,7 +88,7 @@ frontend = Frontend
                     el "td" $ text $ T.pack $ show day
                     el "td" $ text $ T.pack $ show start
                     el "td" $ text $ T.pack $ show end
-                    forM_ category $ \cat ->
+                    el "td" $ forM_ category $ \cat ->
                       divClass "ui basic right pointing label" $ text cat
         FrontendRoute_Wiki -> subRoute_ $ \case
           WikiRoute_Index ->
