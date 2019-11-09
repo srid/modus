@@ -15,6 +15,7 @@ import Data.Functor.Identity
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Data.Time.LocalTime
 import Path
 
 import Obelisk.Configs
@@ -81,6 +82,7 @@ frontend = Frontend
                 el "th" $ text "Day"
                 el "th" $ text "Start"
                 el "th" $ text "End"
+                el "th" $ text "Duration"
                 el "th" $ text "Category"
               el "tbody" $ forM_ days $ \(day, items) ->
                 forM_ items $ \(TT.Item start end category) ->
@@ -88,6 +90,9 @@ frontend = Frontend
                     el "td" $ text $ T.pack $ show day
                     el "td" $ text $ T.pack $ show start
                     el "td" $ text $ T.pack $ show end
+                    el "td" $ text $ T.pack $
+                      let (h, m) = getHours start end
+                      in show h ++ "h" ++ (if m == 0 then "" else show m)
                     el "td" $ forM_ category $ \cat ->
                       divClass "ui basic right pointing label" $ text cat
         FrontendRoute_Wiki -> subRoute_ $ \case
@@ -115,6 +120,11 @@ frontend = Frontend
           Nothing -> text "No config file found in config/common/example"
           Just s -> text $ T.decodeUtf8 s
   }
+  where
+    -- TODO: Replace this hackish function with proper type-safe version.
+    getHours (TimeOfDay h1 m1 _) (TimeOfDay h2 m2 _) = if m2 >= m1
+      then (h2-h1, m2-m1)
+      else (h2-h1-1, 60-m1+m2)
 
 renderPlugin
   :: forall a t m js.
