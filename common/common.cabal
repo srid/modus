@@ -12,8 +12,6 @@ library
                , time
                , aeson
                , path
-               , refined
-               , facts
   default-extensions:
     TypeFamilies
     PolyKinds
