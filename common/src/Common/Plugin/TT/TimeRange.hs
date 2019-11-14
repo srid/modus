@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -9,8 +10,11 @@
 {-# LANGUAGE TypeOperators #-}
 
 module Common.Plugin.TT.TimeRange
-  ( TimeRange
+  ( TimeRange(_timeRange_start, _timeRange_duration)
   , InvalidTimeRange(..)
+  , timeRangeStart
+  , timeRangeEnd
+  , timeRangeDuration
   , mkTimeRange
   )
 where
@@ -25,6 +29,18 @@ data TimeRange = MkTimeRange
   , _timeRange_duration :: Natural
   }
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
+
+timeRangeStart :: TimeRange -> (Natural, Natural)
+timeRangeStart (MkTimeRange x _) = unpackClockHand x
+
+timeRangeEnd :: TimeRange -> (Natural, Natural)
+timeRangeEnd (MkTimeRange start duration) = unpackClockHand $ start + duration
+
+timeRangeDuration :: TimeRange -> (Natural, Natural)
+timeRangeDuration (MkTimeRange _ duration) = unpackClockHand duration
+
+unpackClockHand :: Natural -> (Natural, Natural)
+unpackClockHand mins = (mins `div` 60, mins `mod` 60)
 
 data InvalidTimeRange
   = InvalidHour
