@@ -12,6 +12,8 @@ library
                , time
                , aeson
                , path
+               , refined
+               , facts
   default-extensions:
     TypeFamilies
     PolyKinds
@@ -19,4 +21,5 @@ library
     Common.Api
     Common.Route
     Common.Plugin.TT
+    Common.Plugin.TT.TimeRange
     Common.Plugin.Wiki
