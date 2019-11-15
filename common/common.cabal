@@ -12,6 +12,7 @@ library
                , time
                , aeson
                , path
+               , exceptions
   default-extensions:
     TypeFamilies
     PolyKinds
