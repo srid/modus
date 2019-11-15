@@ -19,4 +19,5 @@ library
     Common.Api
     Common.Route
     Common.Plugin.TT
+    Common.Plugin.TT.TimeRange
     Common.Plugin.Wiki

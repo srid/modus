@@ -16,8 +16,8 @@ import Data.Maybe (fromJust, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Data.Time.LocalTime
 import Data.Void (Void)
+import Numeric.Natural
 import Path
 import Path.IO
 
@@ -57,24 +57,25 @@ loadFile fp = do
     Left e -> fail $ errorBundlePretty e
     Right v -> pure v
 
-timeOfDay :: Parser TimeOfDay
+timeOfDay :: Parser (Natural, Natural)
 timeOfDay = do
   hh <- L.decimal
   _ <- string "h"
   mm <- optional . try $ L.decimal
-  case makeTimeOfDayValid hh (fromMaybe 0 mm) 0 of
-    Just v -> pure v
-    Nothing -> fail $ "invalid time of day: " ++ show hh ++ "h" ++ maybe "" show  mm
+  pure (hh, fromMaybe 0 mm)
 
-timeRange :: Parser (TimeOfDay, TimeOfDay)
-timeRange = (,) <$> (timeOfDay <* string "-") <*> timeOfDay
+timeRange :: Parser TimeRange
+timeRange = do
+  start <- (timeOfDay <* string "-")
+  end <- timeOfDay
+  either (fail . show) pure $ mkTimeRange start end
 
 item :: Parser Item
 item = do
-  (start, end) <- timeRange
+  tr <- timeRange
   _ <- space1
   cat <- fmap T.pack <$> sepBy1 (some $ printCharExcept '/') (char '/')
-  pure $ Item start end $ NEL.fromList cat
+  pure $ Item tr $ NEL.fromList cat
 
 -- | Like `printChar` but ignores the given character
 printCharExcept :: (MonadParsec e s m, Token s ~ Char) => Char -> m (Token s)
