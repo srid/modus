@@ -76,16 +76,16 @@ frontend = Frontend
       withTabs $ subRoute_ $ \case
         FrontendRoute_Main -> text "Hello"
         FrontendRoute_TT ->
-          renderPlugin @TT.Data (ApiRoute_TT :/ IndexOnlyRoute :/ ()) $ \days ->
-            divClass "ui striped table" $ do
+          renderPlugin @TT.Data (ApiRoute_TT :/ IndexOnlyRoute :/ ()) $ \days -> do
+            durations <- fmap concat $ divClass "ui striped table" $ do
               el "thead" $ el "tr" $ do
                 el "th" $ text "Day"
                 el "th" $ text "Start"
                 el "th" $ text "End"
                 el "th" $ text "Duration"
                 el "th" $ text "Category"
-              el "tbody" $ forM_ days $ \(day, items) ->
-                forM_ items $ \(TT.Item timeRange category) ->
+              el "tbody" $ forM days $ \(day, items) -> do
+                forM items $ \(TT.Item timeRange category) ->
                   el "tr" $ do
                     el "td" $ text $ T.pack $ show day
                     el "td" $ clockHand $ TT.timeRangeStart timeRange
@@ -93,6 +93,10 @@ frontend = Frontend
                     el "td" $ clockHand $ TT.timeRangeDuration timeRange
                     el "td" $ forM_ category $ \cat ->
                       divClass "ui basic right pointing label" $ text cat
+                    pure $ TT._timeRange_duration timeRange
+            divClass "ui message" $ do
+              divClass "header" $ text "Total hours"
+              el "p" $ clockHand $ TT.unpackClockHand $ sum durations
         FrontendRoute_Wiki -> subRoute_ $ \case
           WikiRoute_Index ->
             renderPlugin @Wiki.Data (ApiRoute_Wiki :/ WikiRoute_Index :/ ()) $ \notes ->

@@ -12,10 +12,11 @@
 module Common.Plugin.TT.TimeRange
   ( TimeRange(_timeRange_start, _timeRange_duration)
   , InvalidTimeRange(..)
+  , mkTimeRange
   , timeRangeStart
   , timeRangeEnd
   , timeRangeDuration
-  , mkTimeRange
+  , unpackClockHand
   )
 where
 
