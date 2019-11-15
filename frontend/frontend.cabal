@@ -17,6 +17,7 @@ library
                , aeson
                , time
                , either
+               , containers
   exposed-modules:
     Frontend
   ghc-options: -Wall

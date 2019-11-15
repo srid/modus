@@ -14,6 +14,7 @@ import Data.Either.Combinators (fromRight')
 import Data.Functor.Identity
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Map.Strict as Map
 import qualified Data.Text.Encoding as T
 import Numeric.Natural
 import Path
@@ -85,7 +86,7 @@ frontend = Frontend
                 el "th" $ text "Duration"
                 el "th" $ text "Category"
               el "tbody" $ forM days $ \(day, items) -> do
-                forM items $ \(TT.Item timeRange category) ->
+                forM items $ \item@(TT.Item timeRange category) ->
                   el "tr" $ do
                     el "td" $ text $ T.pack $ show day
                     el "td" $ clockHand $ TT.timeRangeStart timeRange
@@ -93,10 +94,22 @@ frontend = Frontend
                     el "td" $ clockHand $ TT.timeRangeDuration timeRange
                     el "td" $ forM_ category $ \cat ->
                       divClass "ui basic right pointing label" $ text cat
-                    pure $ TT._timeRange_duration timeRange
+                    pure item
+            let durationMap = foldl (\m (TT.Item timeRange cat) -> Map.insertWith mappend cat [TT._timeRange_duration timeRange] m)
+                              mempty durations
+            -- TODO: Use gantt chart like layout
+            divClass "ui striped table" $ do
+              el "thead" $ el "tr" $ do
+                el "th" $ text "Category"
+                el "th" $ text "Total hours"
+              el "tbody" $ forM_ (Map.toList durationMap) $ \(category, items) ->
+                el "tr" $ do
+                  el "td" $ forM_ category $ \cat ->
+                    divClass "ui basic right pointing label" $ text cat
+                  el "td" $ clockHand $ TT.unpackClockHand $ sum items
             divClass "ui message" $ do
               divClass "header" $ text "Total hours"
-              el "p" $ clockHand $ TT.unpackClockHand $ sum durations
+              el "p" $ clockHand $ TT.unpackClockHand $ sum $ TT._timeRange_duration . TT._item_timeRange <$> durations
         FrontendRoute_Wiki -> subRoute_ $ \case
           WikiRoute_Index ->
             renderPlugin @Wiki.Data (ApiRoute_Wiki :/ WikiRoute_Index :/ ()) $ \notes ->
