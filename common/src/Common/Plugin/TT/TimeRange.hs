@@ -22,8 +22,6 @@ where
 
 import Control.Monad.Catch
 import Data.Aeson
-import GHC.Generics
-import Numeric.Natural
 
 data TimeRange = MkTimeRange
   { _timeRange_start :: Natural
@@ -31,16 +29,18 @@ data TimeRange = MkTimeRange
   }
   deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
-timeRangeStart :: TimeRange -> (Natural, Natural)
+type ClockHand = (Natural, Natural)
+
+timeRangeStart :: TimeRange -> ClockHand
 timeRangeStart (MkTimeRange x _) = unpackClockHand x
 
-timeRangeEnd :: TimeRange -> (Natural, Natural)
+timeRangeEnd :: TimeRange -> ClockHand
 timeRangeEnd (MkTimeRange start duration) = unpackClockHand $ start + duration
 
-timeRangeDuration :: TimeRange -> (Natural, Natural)
+timeRangeDuration :: TimeRange -> ClockHand
 timeRangeDuration (MkTimeRange _ duration) = unpackClockHand duration
 
-unpackClockHand :: Natural -> (Natural, Natural)
+unpackClockHand :: Natural -> ClockHand
 unpackClockHand mins = (mins `div` 60, mins `mod` 60)
 
 data InvalidTimeRange

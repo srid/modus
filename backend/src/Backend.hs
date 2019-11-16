@@ -9,7 +9,6 @@ module Backend
   ( backend
   ) where
 
-import Control.Monad.IO.Class
 import qualified Data.Aeson as Aeson
 import Data.Bifunctor (bimap)
 import qualified Data.ByteString.Char8 as BSC

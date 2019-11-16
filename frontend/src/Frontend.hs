@@ -7,16 +7,13 @@
 {-# LANGUAGE TypeFamilies #-}
 module Frontend where
 
-import Control.Monad
 import Control.Monad.Fix
 import Data.Aeson (FromJSON)
 import Data.Either.Combinators (fromRight')
-import Data.Functor.Identity
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import qualified Data.Text.Encoding as T
-import Numeric.Natural
 import Path
 
 import Obelisk.Configs
@@ -36,8 +33,8 @@ data Tab
   | Tab_TT
   deriving (Eq, Ord, Bounded, Enum)
 
-instance Show Tab where
-  show = \case
+tabTitle :: Tab -> Text
+tabTitle = \case
     Tab_Home -> "Home"
     Tab_Wiki -> "Wiki"
     Tab_TT -> "TT"
@@ -62,7 +59,7 @@ withTabs w = do
       let attr = ffor ((== tab) <$> activeTab) $ \case
             False -> ("class" =: "item")
             True -> ("class" =: "active item")
-      elDynAttr "div" attr $ routeLink (tabRoute tab) $ text $ T.pack (show tab)
+      elDynAttr "div" attr $ routeLink (tabRoute tab) $ text $ tabTitle tab
   divClass "ui bottom attached active tab segment" w
 
 frontend :: Frontend (R FrontendRoute)
@@ -88,14 +85,14 @@ frontend = Frontend
               el "tbody" $ forM days $ \(day, items) -> do
                 forM items $ \item@(TT.Item timeRange category) ->
                   el "tr" $ do
-                    el "td" $ text $ T.pack $ show day
+                    el "td" $ text $ show day
                     el "td" $ clockHand $ TT.timeRangeStart timeRange
                     el "td" $ clockHand $ TT.timeRangeEnd timeRange
                     el "td" $ clockHand $ TT.timeRangeDuration timeRange
                     el "td" $ forM_ category $ \cat ->
                       divClass "ui basic right pointing label" $ text cat
                     pure item
-            let durationMap = foldl (\m (TT.Item timeRange cat) -> Map.insertWith mappend cat [TT._timeRange_duration timeRange] m)
+            let durationMap = flipfoldl' (\(TT.Item timeRange cat) -> Map.insertWith mappend cat [TT._timeRange_duration timeRange])
                               mempty durations
             -- TODO: Use gantt chart like layout
             divClass "ui striped table" $ do
@@ -138,10 +135,10 @@ frontend = Frontend
   where
     clockHand :: DomBuilder t m => (Natural, Natural) -> m ()
     clockHand (h, m) = do
-      text $ T.pack $ show h
+      text $ show h
       text "h"
       when (m > 0) $
-        text $ T.pack $ show m
+        text $ show m
 
 renderPlugin
   :: forall a t m js.
