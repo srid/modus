@@ -8,7 +8,8 @@ module Backend.Plugin.TT
   ( loadData
   ) where
 
-import Control.Monad
+import Prelude hiding (some, many)
+
 import Data.Char (isPrint)
 import Data.List (sort)
 import qualified Data.List.NonEmpty as NEL
@@ -17,7 +18,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Void (Void)
-import Numeric.Natural
 import Path
 import Path.IO
 

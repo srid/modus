@@ -7,7 +7,7 @@ library
   hs-source-dirs: src
   if impl(ghcjs)
     buildable: False
-  build-depends: base
+  build-depends: base-noprelude
                , common
                , frontend
                , obelisk-backend
@@ -43,7 +43,7 @@ executable backend
   hs-source-dirs: src-bin
   if impl(ghcjs)
     buildable: False
-  build-depends: base
+  build-depends: base-noprelude
                , backend
                , common
                , frontend

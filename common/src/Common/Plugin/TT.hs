@@ -10,10 +10,8 @@ module Common.Plugin.TT
 where
 
 import Data.Aeson
-import Data.List.NonEmpty
 import Data.Text (Text)
 import Data.Time.Calendar
-import GHC.Generics
 
 import Common.Plugin.TT.TimeRange
 
