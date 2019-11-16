@@ -24,6 +24,7 @@ project ./. ({ pkgs, hackGet, ... }: {
     shower = hackGet ./dep/shower;  # Marked as broken in nixpkgs (19.09)
     rib = hackGet ./dep/rib;
     pandoc-include-code = hackGet ./dep/pandoc-include-code;
+    relude = hackGet ./dep/relude;
 
     # My fork of base-noprelude that works on GHCJS, using this PR:
     # https://github.com/haskell-hvr/base-noprelude/pull/5
@@ -33,7 +34,7 @@ project ./. ({ pkgs, hackGet, ... }: {
   overrides = self: super: with pkgs.haskell.lib; {
     clay = dontCheck super.clay;
     Glob = dontCheck super.Glob;  # Fails, after overriding base-noprelude
-    relude = dontCheck super.relude;  # doctest doesn't work on ghcjs
+    relude = dontCheck super.relude;  # doctest, which relude uses, doesn't work on ghcjs
   };
 
 })
