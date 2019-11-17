@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -9,6 +10,7 @@ module Backend
   ( backend
   ) where
 
+import Control.Monad.Catch
 import qualified Data.Aeson as Aeson
 import Data.Bifunctor (bimap)
 import qualified Data.ByteString.Char8 as BSC
@@ -31,11 +33,15 @@ import Common.Route
 import qualified Backend.Plugin.TT as TT
 import qualified Backend.Plugin.Wiki as Wiki
 
+data ConfigMissing = ConfigMissing
+  deriving (Eq, Show, Exception)
+
 backend :: Backend BackendRoute FrontendRoute
 backend = Backend
   { _backend_routeEncoder = fullRouteEncoder
   , _backend_run = \serve -> do
-      Just (Just dataDir) <- fmap parseAbsDir <$> getBackendConfig "data-directory"
+      dataDir <- liftIO $
+        parseAbsDir =<< getBackendConfig "data-directory"
       liftIO $ print dataDir
       serve $ \case
         BackendRoute_Missing :/ () ->
@@ -44,8 +50,11 @@ backend = Backend
           writeLBS =<< liftIO (loadPluginData dataDir r)
   }
   where
+    getBackendConfig :: Text -> IO FilePath
     getBackendConfig name =
-      fmap BSC.unpack . Map.lookup ("backend/" <> name) <$> getConfigs
+      fmap BSC.unpack . Map.lookup ("backend/" <> name) <$> getConfigs >>= \case
+        Nothing -> throwM ConfigMissing
+        Just val -> pure val
 
     loadPluginData :: Path Abs Dir -> R ApiRoute -> IO BSL.ByteString
     loadPluginData dataDir = \case
