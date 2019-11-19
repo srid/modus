@@ -15,6 +15,12 @@ these types, and a renderer that displays them on the frontend. Writing and
 editing content, however, is outside the scope of modus; you are adviced to use
 your own text editor for that.
 
+## Plugins
+
+- [X] Time Tracker
+- [ ] Task visualizer
+- [ ] Seinfeld calendar
+
 ## How to run modus locally
 
 1. [Install obelisk](https://github.com/obsidiansystems/obelisk#installing-obelisk)
